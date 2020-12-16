@@ -37,4 +37,5 @@ Thumbs.db
 # Some random stuffs directories #
 ##################################
 **/venv
+**/.idea
 .env
