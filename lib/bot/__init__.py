@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEFAULT_PREFIX = '!'
-OWNER_IDS = [596641174236692491]
+OWNER_IDS = [596641174236692491, 619607278382874675]
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('GUILD_TOKEN')
 COGS = [path.split('/')[-1][:-3] for path in glob('./lib/cogs/*.py')]
