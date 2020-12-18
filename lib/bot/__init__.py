@@ -35,6 +35,7 @@ class Ready(object):
 
 class Bot(BaseBot):
     def __init__(self):
+        self.platform = None
         self.prefix = DEFAULT_PREFIX
         self.guild = None
         self.ready = False
@@ -48,17 +49,23 @@ class Bot(BaseBot):
             intents=Intents.all(),
         )
 
-    def run(self, version):
+    def run(self, version, platform):
         self.version = version
+        self.platform = platform
         print('Gearing up Kagari...')
         self.setup()
         print('Deploying Kagari...')
         super().run(TOKEN)
 
     def setup(self):
-        for cog in COGS:
-            self.load_extension(f'lib.cogs.{cog}')
-            print(f'{cog} cog loaded.')
+        if self.platform == 'Windows':
+            for cog in COGS:
+                self.load_extension(f'lib.cogs.{cog[5:]}')
+                print(f'{cog[5:]} cog loaded.')
+        else:
+            for cog in COGS:
+                self.load_extension(f'lib.cogs.{cog}')
+                print(f'{cog} cog loaded.')
 
         print('Gear up completed.')
 
