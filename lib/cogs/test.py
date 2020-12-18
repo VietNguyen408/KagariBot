@@ -26,7 +26,7 @@ class Test(Cog):
 
     @command(name='slap', aliases=['hit'])
     async def bitch_slap(self, ctx, member: Member, *, reason: Optional[str] = 'no reason'):
-        await ctx.send(f'{ctx.author.display_name} slapped {member.display_name} for {reason}!')
+        await ctx.send(f'{ctx.author.display_name} slapped {member.mention} for {reason}!')
 
     @Cog.listener()
     async def on_ready(self):

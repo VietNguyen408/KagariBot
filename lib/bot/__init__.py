@@ -1,4 +1,6 @@
 import os
+import platform
+
 from asyncio import sleep
 from datetime import datetime
 from glob import glob
@@ -14,10 +16,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DEFAULT_PREFIX = '!'
-OWNER_IDS = [596641174236692491]
+OWNER_IDS = [596641174236692491, 619607278382874675]
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('GUILD_TOKEN')
-COGS = [path.split('/')[-1][:-3] for path in glob('./lib/cogs/*.py')]
+PLATFORM = platform.system()
+
+COGS = [path.split('\\')[-1][:-3] for path in glob('./lib/cogs/*.py')] if PLATFORM == 'Windows' \
+    else [path.split('/')[-1][:-3] for path in glob('./lib/cogs/*.py')]
 
 
 class Ready(object):
@@ -35,6 +40,7 @@ class Ready(object):
 
 class Bot(BaseBot):
     def __init__(self):
+        self.platform = PLATFORM
         self.prefix = DEFAULT_PREFIX
         self.guild = None
         self.ready = False
@@ -74,7 +80,7 @@ class Bot(BaseBot):
             self.guild = self.get_guild(int(GUILD))
 
             while not self.cogs_ready.all_ready():
-                await sleep(0.5)
+                await sleep(0.5)     
 
             self.welcome_message = Embed(title='Sky Striker Mobilize - Engage!',
                                          description='Kagari-chan has been deployed.',
@@ -93,7 +99,7 @@ class Bot(BaseBot):
     async def on_error(self, err, *args, **kwargs):
         if err == "on_command_error":
             await args[0].send("Something went wrong.")
-        raise
+        # raise
 
     async def on_command_error(self, ctx, exc):
         if isinstance(exc, CommandNotFound):
