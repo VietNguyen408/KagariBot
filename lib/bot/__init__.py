@@ -6,7 +6,7 @@ from glob import glob
 from discord import Intents
 from discord import Embed
 from discord.ext.commands import Bot as BaseBot
-from discord.ext.commands import CommandNotFound
+from discord.ext.commands import CommandNotFound, Context
 from dotenv import load_dotenv
 
 # from ..db import db
@@ -106,6 +106,14 @@ class Bot(BaseBot):
     async def on_message(self, message):
         if not message.author.bot:
             await self.process_commands(message)
+
+    async def process_commands(self, message):
+        ctx = await self.get_context(message, cls=Context)
+        if self.ready:
+            if ctx.command is not None and ctx.guild is not None:
+                await self.invoke(ctx)
+        else:
+            await ctx.send('I am not ready yet')
 
 
 bot = Bot()
