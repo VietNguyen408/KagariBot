@@ -15,7 +15,7 @@ class Test(Cog):
 
     @command(name='start')
     async def start(self, ctx):
-        guild = ctx.guild
+        # guild = ctx.guild
         author = ctx.message.author
         await ctx.send(f'Hello {author.mention}!')
         if not ctx.message.author.voice:
