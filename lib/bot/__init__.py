@@ -11,18 +11,28 @@ from discord.ext.commands import Bot as BaseBot
 from discord.ext.commands import CommandNotFound, Context
 from dotenv import load_dotenv
 
-# from ..db import db
+from ..db.db import prefix_db
 
 load_dotenv()
 
-DEFAULT_PREFIX = '!'
 OWNER_IDS = [596641174236692491, 619607278382874675]
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('GUILD_TOKEN')
+PREFIX = os.getenv('DEFAULT_PREFIX')
 PLATFORM = platform.system()
 
 COGS = [path.split('\\')[-1][:-3] for path in glob('./lib/cogs/*.py')] if PLATFORM == 'Windows' \
     else [path.split('/')[-1][:-3] for path in glob('./lib/cogs/*.py')]
+COGS.remove('__init__')
+
+
+async def determine_prefix(bot, message):
+    guild = message.guild
+    if guild:
+        custom_prefix = prefix_db.find_one({'guild_id': guild.id})['prefix']
+        return custom_prefix if custom_prefix else PREFIX
+    else:
+        return PREFIX
 
 
 class Ready(object):
@@ -41,7 +51,6 @@ class Ready(object):
 class Bot(BaseBot):
     def __init__(self):
         self.platform = PLATFORM
-        self.prefix = DEFAULT_PREFIX
         self.guild = None
         self.ready = False
         self.cogs_ready = Ready()
@@ -49,7 +58,7 @@ class Bot(BaseBot):
         self.default_channel = None
         self.welcome_message = None
         super().__init__(
-            command_prefix=DEFAULT_PREFIX,
+            command_prefix=determine_prefix,
             owner_ids=OWNER_IDS,
             intents=Intents.all(),
         )
@@ -115,11 +124,11 @@ class Bot(BaseBot):
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=Context)
-        if self.ready:
-            if ctx.command is not None and ctx.guild is not None:
+        if ctx.command is not None and ctx.guild is not None:
+            if self.ready:
                 await self.invoke(ctx)
-        else:
-            await ctx.send('I am not ready yet')
+            else:
+                await ctx.send('I am not ready yet.')
 
 
 bot = Bot()
