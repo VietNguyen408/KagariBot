@@ -29,8 +29,8 @@ COGS.remove('__init__')
 async def determine_prefix(bot, message):
     guild = message.guild
     if guild:
-        custom_prefix = prefix_db.find_one({'guild_id': guild.id})['prefix']
-        return custom_prefix if custom_prefix else PREFIX
+        custom_prefix = prefix_db.find_one({'guild_id': guild.id})
+        return custom_prefix['prefix'] if custom_prefix else PREFIX
     else:
         return PREFIX
 
