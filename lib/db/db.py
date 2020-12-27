@@ -5,5 +5,4 @@ client = MongoClient('mongodb+srv://mckenzie:29112001@jojo-quotes.n5rr3.mongodb.
 
 # Pull content from MongoDB
 question_db = client['kagari']['question']
-print(question_db)
 prefix_db = client['kagari']['prefix']
