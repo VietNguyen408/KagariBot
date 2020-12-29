@@ -15,7 +15,7 @@ from discord.ext.commands import Bot
 from discord.ext.commands import Context
 from dotenv import load_dotenv
 
-from lib.db.db import prefix_db
+from lib.db.db import setting_db
 
 load_dotenv()
 
@@ -34,8 +34,8 @@ if '__init__' in COGS:
 async def determine_prefix(bot, message):
     guild = message.guild
     if guild:
-        custom_prefix = prefix_db.find_one({'guild_id': guild.id})
-        return custom_prefix['prefix'] if custom_prefix else PREFIX
+        custom_setting = setting_db.find_one({'guild_id': guild.id})
+        return custom_setting['prefix'] if custom_setting else PREFIX
     else:
         return PREFIX
 
@@ -64,6 +64,7 @@ class KagariBot(Bot):
         self.version = '0.0.0'
         self.default_channel = None
         self.welcome_message = None
+        self.game = None
         super().__init__(
             command_prefix=determine_prefix,
             owner_ids=OWNER_IDS,
@@ -76,7 +77,7 @@ class KagariBot(Bot):
         self.version = version
         print('Gearing up Kagari...  (run - b4 setup)')
         self.setup()
-        print('Deploying Kagari...  (run - after setup')
+        print('Deploying Kagari...  (run - after setup)')
         super().run(TOKEN)
 
     def setup(self):
@@ -115,24 +116,24 @@ class KagariBot(Bot):
         else:
             print(f'{self.user.name}-chan is reconnected OwO  (on_ready)')
 
-    async def on_error(self, err, *args, **kwargs):
-        if err == "on_command_error":
-            await args[0].send("Something went wrong.")
+    # async def on_error(self, err, *args, **kwargs):
+    #     if err == "on_command_error":
+    #         await args[0].send("Something went wrong.")
 
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send('This command cannot be used in private messages.')
-        elif isinstance(error, commands.DisabledCommand):
-            await ctx.author.send('Sorry. This command is disabled and cannot be used.')
-        elif isinstance(error, commands.CommandInvokeError):
-            original = error.original
-            if not isinstance(original, discord.HTTPException):
-                print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
-                traceback.print_tb(original.__traceback__)
-                print(f'{original.__class__.__name__}: {original}',
-                      file=sys.stderr)
-        elif isinstance(error, commands.ArgumentParsingError):
-            await ctx.send(error)
+    # async def on_command_error(self, ctx, error):
+    #     if isinstance(error, commands.NoPrivateMessage):
+    #         await ctx.author.send('This command cannot be used in private messages.')
+    #     elif isinstance(error, commands.DisabledCommand):
+    #         await ctx.author.send('Sorry. This command is disabled and cannot be used.')
+    #     elif isinstance(error, commands.CommandInvokeError):
+    #         original = error.original
+    #         if not isinstance(original, discord.HTTPException):
+    #             print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
+    #             traceback.print_tb(original.__traceback__)
+    #             print(f'{original.__class__.__name__}: {original}',
+    #                   file=sys.stderr)
+    #     elif isinstance(error, commands.ArgumentParsingError):
+    #         await ctx.send(error)
 
     async def on_message(self, message):
         if not message.author.bot:
