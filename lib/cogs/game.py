@@ -9,35 +9,34 @@ from discord.ext.commands import Cog, command
 from discord import Embed, ClientException
 from discord.utils import get
 
-from ..db.db import question_db, setting_db
+from ..db.db import question_db
 
 load_dotenv()
 PREFIX = os.getenv('DEFAULT_PREFIX')
-DEFAULT_TIMER = os.getenv('GAME_DEFAULT_TIMER')
+DEFAULT_TIMER = int(os.getenv('GAME_DEFAULT_TIMER'))
 
 class KurryGame:
-    def __init__(self, ctx, voice):
+    def __init__(self, ctx, voice, timer):
         self.ctx = ctx
         self.voice = voice
+        self.timer = timer
         self.guild_id = ctx.guild.id
         self.channel = ctx.channel
-        self.is_paused = False
-        custom_setting = setting_db.find_one({'guild_id': self.guild_id})
-        self.topic_pool = [topic for topic in question_db.find()]
-        self.timer = custom_setting['timer'] if custom_setting else DEFAULT_TIMER
-        if not custom_setting:
-            new_entry = {
-                    'guild_id': self.guild_id,
-                    'prefix': PREFIX,
-                    'timer' : DEFAULT_TIMER
-                }
-            setting_db.insert_one(new_entry)
+        self.is_stopped = False
 
-    async def send_voting_board(self):
+    async def change_timer(self, new_timer):
         pass
 
-    async def a_single_round(self, member_list, topic1, topic2):
-        shuffle(member_list)
+    # async def change_mode(self, option):
+    #     pass
+
+    async def send_voting_board(self, member_list, topic1, topic2):
+        await self.channel.send('Hell yeah.')
+
+    async def send_round_result(self, member_list, topic1, topic2):
+        await self.channel.send('Hell no.')
+
+    async def send_topic_to_players(self, member_list, topic1, topic2):
         for index, member in enumerate(member_list):
             if not member.bot:
                 if index == 0:
@@ -51,17 +50,24 @@ class KurryGame:
     async def game_loop(self):
         while True:
             member_list = self.voice.members
+            member_list = list(filter(lambda member: not member.bot, member_list))
+            shuffle(member_list)
             topic = choice(self.topic_pool)
             topic1 = topic['topic1']
             topic2 = topic['topic2']
-            self.a_single_round(member_list, topic1, topic2)
+            self.topic_pool.remove(topic)
+            print((topic1, topic2))
 
             # Wait for the round to finish...
-            await asyncio.sleep(self.timer)
+            await asyncio.sleep(self.timer-50)
+            await self.send_topic_to_players(member_list, topic1, topic2)
 
             # Print the voting board
+            await self.send_voting_board(member_list, topic1, topic2)
+            await asyncio.sleep(10)
 
             # Print the result board
+            await self.send_round_result(member_list, topic1, topic2)
         
 
 class Game(Cog):
@@ -92,12 +98,14 @@ class Game(Cog):
             await self.leave_voice_channel()
         self.current_voice_client = await game_channel.connect()
 
-        self.game = KurryGame(ctx=ctx, voice=game_channel)
-        await self.game.a_single_round()
+        kurry_game = KurryGame(ctx=ctx, voice=game_channel)
+        self.game = asyncio.ensure_future(kurry_game.game_loop())
 
     @command(name='stop', alias=['dc', 'disconnect', 'quit'], help='Stop the game.')
     async def stop(self, ctx):
-        pass
+        # try:
+        self.game.cancel()
+        print('Game cancelled')
 
     @command(name='skip', help='Skip this round, get a new topic.')
     async def skip(self, ctx):
