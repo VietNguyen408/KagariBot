@@ -6,8 +6,6 @@ from discord.ext.commands import command
 
 from lib.db.db import setting_db
 
-DEFAULT_TIMER = os.getenv('GAME_DEFAULT_TIMER')
-
 class Utils(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -36,7 +34,6 @@ class Utils(Cog):
                 new_entry = {
                     'guild_id': guild.id,
                     'prefix': prefix[0],
-                    'timer' : DEFAULT_TIMER
                 }
                 setting_db.insert_one(new_entry)
             await ctx.send(f'Prefix changed to {prefix[0]}')
