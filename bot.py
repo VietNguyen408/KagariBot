@@ -102,9 +102,9 @@ class KagariBot(Bot):
                 await sleep(0.5)
 
             self.welcome_message = Embed(title='Sky Striker Mobilize - Engage!',
-                                         description='Kagari-chan has been deployed.',
-                                         color=0xE8290B,
-                                         timestamp=datetime.utcnow())
+                                        description='Kagari-chan has been deployed.',
+                                        color=0xE8290B,
+                                        timestamp=datetime.utcnow())
             self.welcome_message.set_author(
                 name=f'{self.user.name}-chan', icon_url=self.user.avatar_url)
             self.welcome_message.set_image(url=self.user.avatar_url)
