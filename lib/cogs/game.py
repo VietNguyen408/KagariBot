@@ -14,16 +14,13 @@ from discord.utils import get
 from ..db.db import question_db
 
 DEFAULT_TIMER = 60
-BETWEEN_STAGES_TIME = 20
+BETWEEN_STAGES_TIME = 15
 IMPOSTOR_IMG_URL = 'https://staticg.sportskeeda.com/editor/2020/09/340fd-16010530499727-800.jpg'
 VOTING_EMOJI = ('1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣')
 
 
 class KurryGame:
     def __init__(self, ctx, bot, voice, timer):
-        self.reset(ctx, bot, voice, timer)
-
-    def reset(self, ctx, bot, voice, timer):
         self.ctx = ctx
         self.bot = bot
         self.voice = voice
@@ -42,7 +39,7 @@ class KurryGame:
                     await member.send(topic1)
                 else:
                     await member.send(topic2)
-        await self.channel.send(('The round has begin!\n'
+        await self.channel.send(('\n**The round has begin!**\n'
                                 f'You have {self.timer} seconds '
                                 'to discuss and find out who has the unique topic.'))
 
@@ -69,7 +66,7 @@ class KurryGame:
         round_result.description += f'\nBut {member_list[0].display_name} got \'{topic1}\'!'
         await self.channel.send(embed=round_result)
 
-    async def game_loop(self):
+    async def game_round(self):
         while True:
             member_list = self.voice.members
             member_list = list(
@@ -83,7 +80,7 @@ class KurryGame:
 
             # Wait for the round to finish...
             await self.send_topic_to_players(member_list, topic1, topic2)
-            await asyncio.sleep(self.timer - 50)
+            await asyncio.sleep(self.timer)
 
             # Print the voting board
             await self.send_voting_board(member_list, topic1, topic2)
@@ -92,7 +89,6 @@ class KurryGame:
             # Print the result board
             await self.send_round_result(member_list, topic1, topic2)
             await asyncio.sleep(BETWEEN_STAGES_TIME)
-            break
 
 
 class Game(Cog):
@@ -105,14 +101,7 @@ class Game(Cog):
     def cog_unload(self):
         self.leave_vc_if_alone.cancel()
 
-    @command(name='rule', help='Display the rules for the game.')
-    async def tutorial(self, ctx):
-        await ctx.send("""This is the rule of Kurry game:\n- I will give each one of you guys a card that has a word on it.
-- Everyone has the the card with the same word except the impostor.\n- You have 90 seconds to discussion with your friends to find the impostor.\n- After 90 seconds, you will have to vote for the suspect.
-- If the one who get the most vote is the impostor you guy win, otherwise the impostor win.""")
-
-    @command(name='start', help='Start a new game.')
-    async def start(self, ctx):
+    async def start_new_game(self, ctx, timer):
         author = ctx.message.author
         await ctx.send(f'Hello {author.mention}!')
         if not ctx.message.author.voice:
@@ -124,56 +113,65 @@ class Game(Cog):
         self.current_voice_client = await game_channel.connect()
 
         kurry_game = KurryGame(
-            ctx=ctx, bot=self.bot, voice=game_channel, timer=DEFAULT_TIMER)
-        self.game = asyncio.ensure_future(kurry_game.game_loop())
+            ctx=ctx, bot=self.bot, voice=game_channel, timer=timer)
+        self.game = asyncio.ensure_future(kurry_game.game_round())
 
-    @command(name='kurry', help='Start the game immediately')
+    @command(name='rule', help='Display the rules for the game.')
+    async def tutorial(self, ctx):
+        await ctx.send(('**This is the rule of Kurry game:**\n'
+                        '> - I will give each one of you guys a card that has a word on it.\n'
+                        '> - Everyone has the the card with the same word except the impostor.\n'
+                        '> - You have a set amount of time to discussion with your friends to find the impostor.\n'
+                        '> - After that seconds, you will have to vote for the suspect.\n'
+                        '> - If the one who get the most vote is the impostor you guy win, otherwise the impostor win.'))
+
+    @command(name='kurry', aliases=['start', 'yasuo', 'play'], help='Start a new game.')
     async def kurry(self, ctx):
-        # timer = DEFAULT_TIMER
-        bot_start_message = await ctx.send("Need at least 3 players\n💩Join | :gear:Setting")
-        await bot_start_message.add_reaction("💩")
-        await bot_start_message.add_reaction("⚙️")
-        bot_start_message_id = bot_start_message.id
-        channel_id = ctx.channel.id
-        print("Message id of bot start message is", bot_start_message_id)
-        print("Channel ID is", channel_id)
+        timer = DEFAULT_TIMER
+        mode_message = await ctx.send('Need at least 3 players\n\n'
+                                    ':gear: Pick a mode:\n'
+                                    '1️⃣ 40 seconds\n'
+                                    '2️⃣ 60 seconds\n'
+                                    '3️⃣ 90 seconds')
+        await mode_message.add_reaction("1️⃣")
+        await mode_message.add_reaction("2️⃣")
+        await mode_message.add_reaction("3️⃣")
 
-        def check_setting(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ["⚙️"]
+        def check_one(reaction, user):
+            return user == ctx.author and str(reaction.emoji) in ["1️⃣", "2️⃣", "3️⃣"]
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check_setting)
-            print("User that reacts to gear icon")
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=30.0, check=check_one)
         except asyncio.TimeoutError:
-            print("Timeout")
+            print("Timeout.")
+            return
         else:
-            if str(reaction.emoji) == "⚙️":
-                print("Successfully gear")
-                mode_message = await ctx.send("⚙️Pick a mode:\n:one: 40 seconds\n:two: 60 seconds\n:three: 90 seconds")
-                await mode_message.add_reaction("1️⃣")
-                await mode_message.add_reaction("2️⃣")
-                await mode_message.add_reaction("3️⃣")
+            if(reaction.emoji == "1️⃣"):
+                timer = 40
+            elif(reaction.emoji == "2️⃣"):
+                timer = 60
+            elif(reaction.emoji == "3️⃣"):
+                timer = 90
+            print("The length of timer is:", timer)
+
+        bot_join_message = await ctx.send("💩 Start game")
+        await bot_join_message.add_reaction("💩")
 
         def check_start(reaction, user):
             return user == ctx.author and str(reaction.emoji) in ["💩"]
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check_start)
-            print("User that reacts to poop icon", user)
+            reaction, _ = await self.bot.wait_for("reaction_add", timeout=30.0, check=check_start)
         except asyncio.TimeoutError:
-            print("Timeout")
+            print("Timeout.")
+            return
         else:
             if str(reaction.emoji) == "💩":
-                print("Successfully poop")
-                # start send dm to user
+                await self.start_new_game(ctx=ctx, timer=timer)
 
-    @command(name='stop', alias=['dc', 'disconnect', 'quit'], help='Stop the game.')
+    @command(name='stop', aliases=['dc', 'disconnect', 'quit'], help='Stop the current game.')
     async def stop(self, ctx):
-        # try:
         self.game.cancel()
         await ctx.send('Game cancelled.')
-
-    @command(name='skip', help='Skip this round, get a new topic.')
-    async def skip(self, ctx):
-        pass
+        await self.current_voice_client.disconnect()
 
     @Cog.listener()
     async def on_ready(self):
