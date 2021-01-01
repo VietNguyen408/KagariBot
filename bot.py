@@ -1,7 +1,5 @@
 import os
-import sys
 import platform
-import traceback
 
 from asyncio import sleep
 from datetime import datetime
@@ -10,7 +8,6 @@ from glob import glob
 import discord
 from discord import Intents
 from discord import Embed
-from discord.ext import commands
 from discord.ext.commands import Bot
 from discord.ext.commands import Context
 from dotenv import load_dotenv
