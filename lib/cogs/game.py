@@ -13,10 +13,6 @@ from ..db.db import question_db
 
 DEFAULT_TIMER = 60
 
-load_dotenv()
-PREFIX = os.getenv('DEFAULT_PREFIX')
-DEFAULT_TIMER = int(os.getenv('GAME_DEFAULT_TIMER'))
-
 class KurryGame:
     def __init__(self, ctx, voice, timer):
         self.ctx = ctx
@@ -100,7 +96,7 @@ class Game(Cog):
             await self.leave_voice_channel()
         self.current_voice_client = await game_channel.connect()
 
-        kurry_game = KurryGame(ctx=ctx, voice=game_channel)
+        kurry_game = KurryGame(ctx=ctx, voice=game_channel, timer = DEFAULT_TIMER)
         self.game = asyncio.ensure_future(kurry_game.game_loop())
     
     @command(name='kurry', help = 'Start the game immediately')
@@ -113,26 +109,42 @@ class Game(Cog):
         channel_id = ctx.channel.id
         print("Message id of bot start message is",bot_start_message_id)
         print("Channel ID is",channel_id)
+
         def check_setting(reaction, user):
             return user == ctx.author and str(reaction.emoji) in ["⚙️"]
         try:
             reaction, user = await self.bot.wait_for("reaction_add", timeout = 30.0, check = check_setting)
-            print("User that reacts to gear icon")
         except asyncio.TimeoutError:
             print("Timeout")
         else:
             if str(reaction.emoji) == "⚙️":
-                print("Successfully gear")
-                mode_message = await ctx.send("⚙️Pick a mode:\n:one: 40 seconds\n:two: 60 seconds\n:three: 90 seconds")
+                mode_message = await ctx.send("⚙️ Pick a mode:\n:one: 40 seconds\n:two: 60 seconds\n:three: 90 seconds")
                 await mode_message.add_reaction("1️⃣")
                 await mode_message.add_reaction("2️⃣")
                 await mode_message.add_reaction("3️⃣")
+                mode_message_id = mode_message.id
+                print("Mode message id is: ",mode_message_id)
+                def check_one(reaction,user):
+                    return user == ctx.author and str(reaction.emoji) in ["1️⃣","2️⃣","3️⃣"]
+                try:
+                    reaction, user = await self.bot.wait_for("reaction_add", timeout = 30.0, check = check_one)
+                except asyncio.TimeoutError:
+                    print("Timeout")
+                else:
+                    if(reaction.emoji == "1️⃣"):
+                        timer = 40
+                    elif(reaction.emoji == "2️⃣"):
+                        timer = 60
+                    elif(reaction.emoji == "3️⃣"):
+                        timer = 90
+                    print("The length of timer is:",timer)
+                
 
         def check_start(reaction, user):
             return user == ctx.author and str(reaction.emoji) in ["💩"] 
         try:
             reaction, user = await self.bot.wait_for("reaction_add", timeout = 30.0, check = check_start)
-            print("User that reacts to poop icon",user)
+            print("User that reacts to poop icon:",user)
         except asyncio.TimeoutError:
             print("Timeout")
         else:
