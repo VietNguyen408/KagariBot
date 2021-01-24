@@ -8,7 +8,7 @@ Some quick note:
   - use help command for list of commands.
 
 ### Invitation link:
-  - https://discord.com/api/oauth2/authorize?client_id=757743660497371228&permissions=0&scope=bot
+  - https://discord.com/api/oauth2/authorize?client_id=785568039714029629&permissions=0&scope=bot
 
 
 ### Commands:
