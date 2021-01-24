@@ -1,9 +1,9 @@
 # KagariBot
 
-KagariBot is a Discord bot that offers your server a fun quick word game to play in voice channel!
+KagariBot is a Discord bot that offers your server a fun quick word game to play in a voice channel!
 
 Some quick note:
-  - The default prefix is *k+*.
+  - The default prefix is *+*.
   - The number of players should be between 3 and 8.
   - use help command for list of commands.
 
