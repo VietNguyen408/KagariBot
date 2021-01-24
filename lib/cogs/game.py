@@ -121,9 +121,9 @@ class Game(Cog):
         await ctx.send(('**This is the rule of Kurry game:**\n'
                         '> - I will give each one of you guys a card that has a word on it.\n'
                         '> - Everyone has the the card with the same word except the impostor.\n'
-                        '> - You have a set amount of time to discussion with your friends to find the impostor.\n'
-                        '> - After that seconds, you will have to vote for the suspect.\n'
-                        '> - If the one who get the most vote is the impostor you guy win, otherwise the impostor win.'))
+                        '> - You have a set amount of time to discuss with your friends to find the impostor.\n'
+                        '> - After that, you will have to vote for the suspect.\n'
+                        '> - If the one who get the most vote is the impostor you guys win, otherwise the impostor wins.'))
 
     @command(name='kurry', aliases=['start', 'yasuo', 'play'], help='Start a new game.')
     async def kurry(self, ctx):
