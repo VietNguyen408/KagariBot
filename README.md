@@ -2,6 +2,13 @@
 
 KagariBot is a Discord bot that offers your server a fun quick word game to play in a voice channel!
 
+This is the rule of Kurry game:
+- I will give each one of you guys a card that has a word on it.
+- Everyone has the the card with the same word except the impostor.
+- You have a set amount of time to discuss with your friends to find the impostor.
+- After that, you will have to vote for the suspect.
+- If the one who get the most vote is the impostor you guys win, otherwise the impostor wins.
+
 Some quick note:
   - The default prefix is *+*.
   - The number of players should be between 3 and 8.
